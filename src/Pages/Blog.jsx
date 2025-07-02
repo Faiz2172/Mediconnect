@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { collection, query, orderBy, getDocs, addDoc, serverTimestamp, updateDoc, doc, where, deleteDoc } from 'firebase/firestore';
-import { firestore } from '../firebase/config';
-import { useAuth } from '@clerk/clerk-react';
 import { Sparkles, Clock, Heart, MessageCircle, Search, X, Share2, Plus, Edit, Trash2 } from 'lucide-react';
+import { useAuth } from '@clerk/clerk-react';
 
 // Modal Component for Full Blog Post
 const BlogModal = ({ post, onClose }) => {
@@ -58,7 +56,17 @@ const BlogModal = ({ post, onClose }) => {
               <div>
                 <p className="text-white font-medium">{post.author}</p>
                 <p className="text-sm text-gray-400">
-                  {post.createdAt?.toDate().toLocaleDateString()}
+                  {(() => {
+                    if (!post.createdAt) return 'Just now';
+                    if (typeof post.createdAt === 'string' || post.createdAt instanceof Date) {
+                      const date = new Date(post.createdAt);
+                      if (!isNaN(date)) return date.toLocaleDateString();
+                    }
+                    if (typeof post.createdAt === 'object' && typeof post.createdAt.toDate === 'function') {
+                      return post.createdAt.toDate().toLocaleDateString();
+                    }
+                    return 'Just now';
+                  })()}
                 </p>
               </div>
             </div>
@@ -260,6 +268,14 @@ const AddBlogModal = ({ isOpen, onClose, onSubmit, loading }) => {
   );
 };
 
+const categoryMap = {
+  general: 'Other',
+  health: 'Other', // Map as needed
+  technology: 'Technology',
+  lifestyle: 'Lifestyle',
+  personal: 'Other', // Map as needed
+};
+
 const Blog = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -293,38 +309,16 @@ const Blog = () => {
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      let q;
-      if (sortBy === 'newest') {
-        q = query(collection(firestore, 'blog_posts'), orderBy('createdAt', 'desc'));
+      const response = await fetch('/api/blogs');
+      const data = await response.json();
+      if (data.success) {
+        setPosts(data.data);
       } else {
-        q = query(collection(firestore, 'blog_posts'), orderBy('likes', 'desc'));
+        setPosts([]);
       }
-      
-      const querySnapshot = await getDocs(q);
-      const fetchedPosts = await Promise.all(querySnapshot.docs.map(async doc => {
-        const postData = doc.data();
-        let isLiked = false;
-        
-        if (isSignedIn && user) {
-          const likesQuery = query(
-            collection(firestore, 'blog_posts', doc.id, 'likes'),
-            where('userId', '==', user.id)
-          );
-          const likeSnapshot = await getDocs(likesQuery);
-          isLiked = !likeSnapshot.empty;
-        }
-
-        return {
-          id: doc.id,
-          ...postData,
-          isLiked,
-          likes: postData.likes || 0
-        };
-      }));
-      
-      setPosts(fetchedPosts);
     } catch (error) {
       console.error('Error fetching posts:', error);
+      setPosts([]);
     } finally {
       setLoading(false);
     }
@@ -411,25 +405,31 @@ const Blog = () => {
     try {
       setLoading(true);
       let imageUrl = '';
-
       if (blogData.image) {
         imageUrl = await uploadImageToCloudinary(blogData.image);
       }
-
-      await addDoc(collection(firestore, 'blog_posts'), {
+      // Map category to backend enum
+      const backendCategory = categoryMap[blogData.category] || 'Other';
+      const payload = {
         title: blogData.title,
         content: blogData.content,
-        category: blogData.category,
-        imageUrl,
+        category: backendCategory,
+        image: imageUrl,
         author: user?.fullName || user?.emailAddresses?.[0]?.emailAddress || 'Anonymous',
         authorId: user?.id,
-        createdAt: serverTimestamp(),
-        likes: 0,
-        comments: []
+      };
+      const response = await fetch('/api/blogs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       });
-
-      setIsAddModalOpen(false);
-      fetchPosts();
+      const data = await response.json();
+      if (data.success) {
+        setIsAddModalOpen(false);
+        fetchPosts();
+      } else {
+        alert('Error creating blog post: ' + (data.message || 'Unknown error'));
+      }
     } catch (error) {
       console.error('Error creating blog post:', error);
       alert('Error creating blog post. Please try again.');
@@ -588,7 +588,17 @@ const Blog = () => {
                   <div className="flex items-center space-x-2">
                     <Clock className="w-4 h-4" />
                     <span>
-                      {post.createdAt?.toDate().toLocaleDateString() || 'Just now'}
+                      {(() => {
+                        if (!post.createdAt) return 'Just now';
+                        if (typeof post.createdAt === 'string' || post.createdAt instanceof Date) {
+                          const date = new Date(post.createdAt);
+                          if (!isNaN(date)) return date.toLocaleDateString();
+                        }
+                        if (typeof post.createdAt === 'object' && typeof post.createdAt.toDate === 'function') {
+                          return post.createdAt.toDate().toLocaleDateString();
+                        }
+                        return 'Just now';
+                      })()}
                     </span>
                   </div>
                   <div className="flex items-center space-x-4">

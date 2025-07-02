@@ -55,7 +55,7 @@ const Footer = () => {
               <Typography variant="body2" style={{ color: '#E5E7EB', lineHeight: 1.8 }}>
                 221B Baker Street, London, Writers' Hub<br />
                 Email: <Link href="mailto:support@kahani.ai" style={{ color: '#60A5FA', textDecoration: 'none', fontWeight: '500' }}>support@kahani.ai</Link><br />
-                Phone: <Link href="tel:+919876543210" style={{ color: '#60A5FA', textDecoration: 'none', fontWeight: '500' }}>+91 98765 43210</Link>
+                Phone: <Link href="tel:+919876543210" style={{ color: '#60A5FA', textDecoration: 'none', fontWeight: '500' }}>+91 9768800180</Link>
               </Typography>
             </motion.div>
           </Grid>
@@ -100,7 +100,7 @@ const Footer = () => {
         {/* Copyright */}
         <Box mt={3} textAlign="center">
           <Typography variant="body2" style={{ color: '#9CA3AF', fontFamily: `'Merriweather', serif`, fontSize: '14px' }}>
-            © {new Date().getFullYear()} Kahani AI. Where AI meets storytelling.
+            © {new Date().getFullYear()} CarePulse. Your Medical Companion
           </Typography>
         </Box>
       </Container>
