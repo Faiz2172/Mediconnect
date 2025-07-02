@@ -1,0 +1,33 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "drizzle:generate": "drizzle-kit generate:sqlite",
+    "drizzle:migrate": "drizzle-kit migrate"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.1",
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "cron": "^4.3.1",
+    "dotenv": "^16.4.7",
+    "drizzle-orm": "^0.44.2",
+    "express": "^4.21.2",
+    "node-fetch": "^3.3.2",
+    "nodemailer": "^6.10.0",
+    "pg": "^8.16.3",
+    "resend": "^4.1.2"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.4",
+    "nodemon": "^3.1.9"
+  },
+  "description": ""
+}
